@@ -22,7 +22,9 @@ def test_create_transaction_status_is_pending(auth_client: APIClient, account) -
     assert response.data["status"] == Transaction.Status.PENDING
 
 
-def test_create_transaction_with_wrong_account_returns_403_or_400(auth_client: APIClient) -> None:
+def test_create_transaction_with_wrong_account_returns_403_or_400(
+    auth_client: APIClient,
+) -> None:
     other_account = AccountFactory()
     response = auth_client.post(
         "/api/transactions/",
@@ -50,7 +52,9 @@ def test_list_transactions_returns_own_only(auth_client: APIClient, user) -> Non
 
 
 @patch("integrations.kafka.producer.publish_event")
-def test_kafka_publish_called_on_create(mock_publish_event, auth_client: APIClient, account) -> None:
+def test_kafka_publish_called_on_create(
+    mock_publish_event, auth_client: APIClient, account
+) -> None:
     response = auth_client.post(
         "/api/transactions/",
         {
@@ -67,7 +71,9 @@ def test_kafka_publish_called_on_create(mock_publish_event, auth_client: APIClie
 
 
 @patch("integrations.kafka.producer.get_producer", side_effect=Exception("kafka_down"))
-def test_transaction_created_even_when_kafka_fails(_mock_get_producer, auth_client: APIClient, account) -> None:
+def test_transaction_created_even_when_kafka_fails(
+    _mock_get_producer, auth_client: APIClient, account
+) -> None:
     response = auth_client.post(
         "/api/transactions/",
         {
@@ -116,6 +122,7 @@ def test_internal_status_update_invalid_transition_returns_422(db) -> None:
 # Additional tests to close coverage gaps
 # ---------------------------------------------------------------------------
 
+
 def test_list_transactions_filter_by_account(auth_client: APIClient, user) -> None:
     """Covers get_queryset() account filter branch (line 36)."""
     txn1 = TransactionFactory(account__user=user)
@@ -131,8 +138,12 @@ def test_list_transactions_filter_by_account(auth_client: APIClient, user) -> No
 
 def test_list_transactions_filter_by_status(auth_client: APIClient, user) -> None:
     """Covers get_queryset() status filter branch (line 38)."""
-    pending_txn = TransactionFactory(account__user=user, status=Transaction.Status.PENDING)
-    completed_txn = TransactionFactory(account__user=user, status=Transaction.Status.COMPLETED)
+    pending_txn = TransactionFactory(
+        account__user=user, status=Transaction.Status.PENDING
+    )
+    completed_txn = TransactionFactory(
+        account__user=user, status=Transaction.Status.COMPLETED
+    )
 
     response = auth_client.get("/api/transactions/?status=PENDING")
 
@@ -153,7 +164,7 @@ def test_transaction_detail_returns_own(auth_client: APIClient, user) -> None:
 
 
 def test_transaction_detail_by_other_user_returns_403(db) -> None:
-    """Covers TransactionDetailView.get_object() PermissionDenied branch (lines 69-72)."""
+    """Covers TransactionDetailView.get_object() PermissionDenied branch."""
     owner = UserFactory()
     intruder = UserFactory()
     txn = TransactionFactory(account__user=owner)
@@ -182,7 +193,7 @@ def test_internal_status_update_same_status_is_idempotent(db) -> None:
 
 @patch("integrations.kafka.producer.get_producer", side_effect=Exception("kafka_down"))
 def test_internal_status_update_kafka_fail_still_saves(_mock, db) -> None:
-    """Covers Kafka error-log path in InternalTransactionStatusUpdateView (lines 104-105)."""
+    """Covers Kafka error-log path in InternalTransactionStatusUpdateView."""
     transaction = TransactionFactory(status=Transaction.Status.PENDING)
     client = APIClient()
 

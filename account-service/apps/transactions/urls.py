@@ -7,8 +7,16 @@ from apps.transactions.views import (
 )
 
 urlpatterns = [
-    path("transactions/", TransactionListCreateView.as_view(), name="transaction-list-create"),
-    path("transactions/<uuid:pk>/", TransactionDetailView.as_view(), name="transaction-detail"),
+    path(
+        "transactions/",
+        TransactionListCreateView.as_view(),
+        name="transaction-list-create",
+    ),
+    path(
+        "transactions/<uuid:pk>/",
+        TransactionDetailView.as_view(),
+        name="transaction-detail",
+    ),
     path(
         "internal/transactions/<uuid:pk>/status/",
         InternalTransactionStatusUpdateView.as_view(),

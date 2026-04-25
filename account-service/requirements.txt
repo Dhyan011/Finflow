@@ -11,3 +11,5 @@ factory-boy
 confluent-kafka
 pytest-cov
 minio
+drf-spectacular==0.29.0
+pre-commit==4.6.0

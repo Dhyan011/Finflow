@@ -7,10 +7,10 @@ from rest_framework.test import APIClient
 from apps.core.logging import PIIScrubFilter
 from apps.users.models import User
 
-
 # ---------------------------------------------------------------------------
 # Model-level tests (Day 1)
 # ---------------------------------------------------------------------------
+
 
 def test_user_created_with_uuid_pk(user) -> None:
     parsed_uuid = uuid.UUID(str(user.id))
@@ -28,17 +28,17 @@ def test_soft_delete(user) -> None:
 
 def test_user_requires_email() -> None:
     with pytest.raises(ValueError):
-        User.objects.create_user(email='', password='testpass123', full_name='No Email')
+        User.objects.create_user(email="", password="testpass123", full_name="No Email")
 
 
 def test_pii_scrub_filter_masks_email_in_message() -> None:
     pii_filter = PIIScrubFilter()
     record = logging.LogRecord(
-        name='finflow',
+        name="finflow",
         level=logging.INFO,
         pathname=__file__,
         lineno=1,
-        msg='login from user test.user@example.com was successful',
+        msg="login from user test.user@example.com was successful",
         args=(),
         exc_info=None,
     )
@@ -46,41 +46,46 @@ def test_pii_scrub_filter_masks_email_in_message() -> None:
     allowed = pii_filter.filter(record)
 
     assert allowed is True
-    assert '[email]' in record.msg
-    assert 'test.user@example.com' not in record.msg
+    assert "[email]" in record.msg
+    assert "test.user@example.com" not in record.msg
 
 
 def test_pii_scrub_filter_redacts_pii_attributes() -> None:
     """Covers apps/core/logging.py line 15 — setattr(record, field, '***')."""
     pii_filter = PIIScrubFilter()
     record = logging.LogRecord(
-        name='finflow',
+        name="finflow",
         level=logging.INFO,
         pathname=__file__,
         lineno=1,
-        msg='user action',
+        msg="user action",
         args=(),
         exc_info=None,
     )
     # Attach a PII field as an extra attribute (as Django logging does)
-    record.token = 'super-secret-jwt-token'
-    record.password = 'hunter2'
+    record.token = "super-secret-jwt-token"
+    record.password = "hunter2"
 
     allowed = pii_filter.filter(record)
 
     assert allowed is True
-    assert record.token == '***'
-    assert record.password == '***'
+    assert record.token == "***"
+    assert record.password == "***"
 
 
 # ---------------------------------------------------------------------------
 # API-level tests for UserRegistrationView (Task 2.1)
 # ---------------------------------------------------------------------------
 
+
 def test_register_user_returns_201(api_client: APIClient, db) -> None:
     response = api_client.post(
         "/api/users/",
-        {"email": "new@example.com", "full_name": "New User", "password": "securepass123"},
+        {
+            "email": "new@example.com",
+            "full_name": "New User",
+            "password": "securepass123",
+        },
         format="json",
     )
     assert response.status_code == 201
@@ -100,6 +105,7 @@ def test_register_duplicate_email_returns_400(api_client: APIClient, user) -> No
 # ---------------------------------------------------------------------------
 # API-level tests for UserMeView (Task 2.1)
 # ---------------------------------------------------------------------------
+
 
 def test_get_me_returns_own_profile(auth_client: APIClient, user) -> None:
     response = auth_client.get("/api/users/me/")

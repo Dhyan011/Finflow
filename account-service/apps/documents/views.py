@@ -1,5 +1,6 @@
 import logging
 
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -38,6 +39,15 @@ class DocumentUploadView(generics.ListCreateAPIView):
     def get_queryset(self):
         return Document.objects.filter(user=self.request.user)
 
+    @extend_schema(
+        request={
+            "multipart/form-data": {
+                "type": "object",
+                "properties": {"file": {"type": "string", "format": "binary"}},
+            }
+        },
+        responses={201: DocumentSerializer},
+    )
     def create(self, request: Request, *args, **kwargs) -> Response:
         file = request.FILES.get("file")
 
@@ -90,6 +100,18 @@ class DocumentDownloadView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string"},
+                    "expires_in": {"type": "integer"},
+                },
+            },
+            404: None,
+        }
+    )
     def get(self, request: Request, pk) -> Response:
         try:
             document = Document.objects.get(pk=pk)

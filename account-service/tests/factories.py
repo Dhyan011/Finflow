@@ -1,5 +1,6 @@
-import factory
 from decimal import Decimal
+
+import factory
 
 from apps.accounts.models import Account
 from apps.transactions.models import Transaction
@@ -10,9 +11,9 @@ class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
 
-    email = factory.Sequence(lambda n: f'user{n}@test.com')
-    full_name = factory.Faker('name')
-    password = factory.PostGenerationMethodCall('set_password', 'testpass123')
+    email = factory.Sequence(lambda n: f"user{n}@test.com")
+    full_name = factory.Faker("name")
+    password = factory.PostGenerationMethodCall("set_password", "testpass123")
 
 
 class AccountFactory(factory.django.DjangoModelFactory):

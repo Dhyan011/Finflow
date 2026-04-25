@@ -11,7 +11,7 @@ class UserManager(BaseUserManager):
 
     def create_user(self, email: str, password: str, **extra) -> "User":
         if not email:
-            raise ValueError('Email must be provided')
+            raise ValueError("Email must be provided")
 
         normalized_email = self.normalize_email(email)
         user = self.model(email=normalized_email, **extra)
@@ -22,9 +22,9 @@ class UserManager(BaseUserManager):
 
 class User(BaseModel, AbstractBaseUser, PermissionsMixin):
     class KYCStatus(models.TextChoices):
-        PENDING = 'PENDING', 'Pending'
-        APPROVED = 'APPROVED', 'Approved'
-        REJECTED = 'REJECTED', 'Rejected'
+        PENDING = "PENDING", "Pending"
+        APPROVED = "APPROVED", "Approved"
+        REJECTED = "REJECTED", "Rejected"
 
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
@@ -37,7 +37,7 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
         default=KYCStatus.PENDING,
     )
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['full_name']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["full_name"]
 
     objects = UserManager()

@@ -1,6 +1,6 @@
-from apps.accounts.models import Account
 from rest_framework.test import APIClient
 
+from apps.accounts.models import Account
 from tests.factories import AccountFactory, UserFactory
 
 
@@ -68,4 +68,3 @@ def test_patch_account_by_other_user_returns_403(db) -> None:
         format="json",
     )
     assert response.status_code == 403
-

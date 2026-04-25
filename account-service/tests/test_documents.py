@@ -1,4 +1,3 @@
-from io import BytesIO
 from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -7,23 +6,28 @@ from rest_framework.test import APIClient
 from apps.documents.models import Document
 from tests.factories import UserFactory
 
-
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
 
+
 def _pdf_file(size: int = 1024, name: str = "test.pdf") -> SimpleUploadedFile:
     """Return a fake PDF upload of the given byte size."""
-    return SimpleUploadedFile(name, b"%PDF-" + b"x" * (size - 5), content_type="application/pdf")
+    return SimpleUploadedFile(
+        name, b"%PDF-" + b"x" * (size - 5), content_type="application/pdf"
+    )
 
 
 # ---------------------------------------------------------------------------
 # Upload tests
 # ---------------------------------------------------------------------------
 
+
 @patch("apps.documents.views.upload_file", return_value="fake-object-key")
 @patch("apps.documents.views.ensure_bucket")
-def test_upload_valid_pdf_returns_201(mock_ensure, mock_upload, auth_client: APIClient) -> None:
+def test_upload_valid_pdf_returns_201(
+    mock_ensure, mock_upload, auth_client: APIClient
+) -> None:
     file = _pdf_file()
     response = auth_client.post("/api/documents/", {"file": file}, format="multipart")
 
@@ -38,7 +42,9 @@ def test_upload_valid_pdf_returns_201(mock_ensure, mock_upload, auth_client: API
 
 @patch("apps.documents.views.upload_file", return_value="fake-object-key")
 @patch("apps.documents.views.ensure_bucket")
-def test_upload_oversized_file_returns_400(mock_ensure, mock_upload, auth_client: APIClient) -> None:
+def test_upload_oversized_file_returns_400(
+    mock_ensure, mock_upload, auth_client: APIClient
+) -> None:
     # MAX_SIZE_BYTES = 10 MB — create a file just over the limit
     from integrations.storage.minio_client import MAX_SIZE_BYTES
 
@@ -47,7 +53,9 @@ def test_upload_oversized_file_returns_400(mock_ensure, mock_upload, auth_client
         b"%PDF-" + b"x" * MAX_SIZE_BYTES,  # one byte over
         content_type="application/pdf",
     )
-    response = auth_client.post("/api/documents/", {"file": oversized_file}, format="multipart")
+    response = auth_client.post(
+        "/api/documents/", {"file": oversized_file}, format="multipart"
+    )
 
     assert response.status_code == 400
     assert "error" in response.data
@@ -56,7 +64,9 @@ def test_upload_oversized_file_returns_400(mock_ensure, mock_upload, auth_client
 
 @patch("apps.documents.views.upload_file", return_value="fake-object-key")
 @patch("apps.documents.views.ensure_bucket")
-def test_upload_invalid_content_type_returns_400(mock_ensure, mock_upload, auth_client: APIClient) -> None:
+def test_upload_invalid_content_type_returns_400(
+    mock_ensure, mock_upload, auth_client: APIClient
+) -> None:
     file = SimpleUploadedFile("script.py", b"print('hi')", content_type="text/x-python")
     response = auth_client.post("/api/documents/", {"file": file}, format="multipart")
 
@@ -76,8 +86,11 @@ def test_upload_no_file_returns_400(auth_client: APIClient) -> None:
 # Download tests
 # ---------------------------------------------------------------------------
 
+
 @patch("apps.documents.views.get_presigned_url", return_value="https://minio/presigned")
-def test_download_own_document_returns_presigned_url(mock_presigned, auth_client: APIClient, user) -> None:
+def test_download_own_document_returns_presigned_url(
+    mock_presigned, auth_client: APIClient, user
+) -> None:
     doc = Document.objects.create(
         user=user,
         file_name="receipt.pdf",
@@ -116,9 +129,12 @@ def test_download_other_users_document_returns_404(auth_client: APIClient) -> No
 # List test
 # ---------------------------------------------------------------------------
 
+
 @patch("apps.documents.views.upload_file", return_value="key1")
 @patch("apps.documents.views.ensure_bucket")
-def test_list_documents_returns_own_only(mock_ensure, mock_upload, auth_client: APIClient, user) -> None:
+def test_list_documents_returns_own_only(
+    mock_ensure, mock_upload, auth_client: APIClient, user
+) -> None:
     # Own document
     Document.objects.create(
         user=user,

@@ -22,4 +22,27 @@ class BaseModel(models.Model):
 
     def soft_delete(self) -> None:
         self.is_deleted = True
-        self.save(update_fields=['is_deleted', 'updated_at'])
+        self.save(update_fields=["is_deleted", "updated_at"])
+
+
+class AuditLog(models.Model):
+    class Action(models.TextChoices):
+        CREATE = "CREATE", "Create"
+        UPDATE = "UPDATE", "Update"
+        DELETE = "DELETE", "Delete"
+
+    from django.conf import settings
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL
+    )
+    action = models.CharField(max_length=10, choices=Action.choices)
+    resource_type = models.CharField(max_length=50)
+    resource_id = models.UUIDField()
+    before_state = models.JSONField(null=True)
+    after_state = models.JSONField(null=True)
+    ip_address = models.GenericIPAddressField(null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
