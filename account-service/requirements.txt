@@ -13,3 +13,4 @@ pytest-cov
 minio
 drf-spectacular==0.29.0
 pre-commit==4.6.0
+httpx==0.28.1

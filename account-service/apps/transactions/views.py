@@ -1,4 +1,7 @@
 import logging
+import os
+import threading
+import httpx
 
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiExample, extend_schema
@@ -10,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.core.audit import log_audit
+from apps.core.hmac_utils import generate_signature
 from apps.transactions.models import Transaction
 from apps.transactions.serializers import (
     InternalTransactionStatusSerializer,
@@ -88,6 +92,27 @@ class TransactionListCreateView(generics.ListCreateAPIView):
                 "kafka_publish_failed",
                 extra={"topic": "transaction.created", "error": str(exc)},
             )
+            
+        # Trigger processing service asynchronously
+        def _trigger_processing():
+            processing_url = os.environ.get("PROCESSING_SERVICE_URL", "http://localhost:8001/api/process/")
+            import json
+            process_payload = {
+                "transaction_id": str(transaction.id),
+                "amount": float(transaction.amount),
+                "currency": transaction.currency,
+                "direction": transaction.direction,
+            }
+            raw_body = json.dumps(process_payload, separators=(",", ":"))
+            headers = {"X-Signature": generate_signature(raw_body)}
+            
+            try:
+                # Fire and forget
+                httpx.post(processing_url, content=raw_body, headers=headers, timeout=5.0)
+            except Exception as e:
+                logger.error("processing_service_trigger_failed", extra={"transaction_id": str(transaction.id), "error": str(e)})
+
+        threading.Thread(target=_trigger_processing, daemon=True).start()
 
 
 class TransactionDetailView(generics.RetrieveAPIView):
