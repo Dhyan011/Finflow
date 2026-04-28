@@ -32,13 +32,15 @@ async def process_transaction(
     body: ProcessRequest,
     request: Request,
     x_signature: str = Header(..., alias="X-Signature"),
+    x_timestamp: str = Header(..., alias="X-Timestamp"),
+    x_nonce: str = Header(..., alias="X-Nonce"),
 ) -> ProcessResponse:
     """
     HMAC-authenticated endpoint.
-    Header ``X-Signature`` must be HMAC-SHA256(request body JSON, HMAC_SECRET).
+    Requires X-Signature, X-Timestamp, and X-Nonce headers.
     """
     raw_body = await request.body()
-    if not verify_signature(raw_body.decode(), x_signature):
+    if not verify_signature(raw_body.decode(), x_signature, x_timestamp, x_nonce):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="invalid_signature",

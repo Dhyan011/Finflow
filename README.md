@@ -38,6 +38,7 @@ Docker Compose will automatically:
 
 ### Useful Endpoints
 - **Account Service Swagger UI**: `http://localhost:8000/api/schema/swagger-ui/`
+- **Processing Service Swagger UI**: `http://localhost:8001/docs`
 - **Processing Service Health**: `http://localhost:8001/health`
 - **MinIO Console**: `http://localhost:9001` (Credentials: `minioadmin` / `minioadmin`)
 

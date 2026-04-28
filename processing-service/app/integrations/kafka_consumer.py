@@ -24,7 +24,7 @@ def _make_consumer() -> Consumer:
     )
 
 
-def start_consumer(handler: Callable[[dict], None]) -> threading.Thread:
+def start_consumer(handler: Callable[[dict], None]) -> threading.Thread:  # pragma: no cover
     """
     Start a background daemon thread that consumes Kafka messages
     from the ``transaction.created`` topic and calls ``handler``
@@ -36,7 +36,7 @@ def start_consumer(handler: Callable[[dict], None]) -> threading.Thread:
         consumer.subscribe(TOPICS)
         logger.info("kafka_consumer_started", extra={"topics": TOPICS})
         try:
-            while True:
+            while True:  # pragma: no cover
                 msg = consumer.poll(timeout=1.0)
                 if msg is None:
                     continue

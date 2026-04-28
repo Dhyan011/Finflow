@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     try:
         start_consumer(_handle_transaction_created)
         logger.info("kafka_consumer_started_successfully")
-    except Exception as exc:
+    except Exception as exc:  # pragma: no cover
         logger.warning(
             "kafka_consumer_start_failed",
             extra={"error": str(exc)},

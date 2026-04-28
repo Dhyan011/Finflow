@@ -1,6 +1,8 @@
 import logging
 import os
 import threading
+import time
+import uuid
 import httpx
 
 from django.shortcuts import get_object_or_404
@@ -103,8 +105,16 @@ class TransactionListCreateView(generics.ListCreateAPIView):
                 "currency": transaction.currency,
                 "direction": transaction.direction,
             }
+            timestamp = str(int(time.time()))
+            nonce = str(uuid.uuid4())
             raw_body = json.dumps(process_payload, separators=(",", ":"))
-            headers = {"X-Signature": generate_signature(raw_body)}
+            signature = generate_signature(raw_body, timestamp, nonce)
+            
+            headers = {
+                "X-Signature": signature,
+                "X-Timestamp": timestamp,
+                "X-Nonce": nonce,
+            }
             
             try:
                 # Fire and forget
